@@ -1,0 +1,42 @@
+name: Build YUME ANIME APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: تحميل المشروع
+        uses: actions/checkout@v4
+
+      - name: إعداد Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: فك مشروع YUME ANIME
+        run: |
+          mkdir app
+          unzip -q "$(find . -maxdepth 1 -name '*.zip' | head -1)" -d app
+
+      - name: تجهيز Android
+        working-directory: app
+        run: |
+          rm -rf android
+          flutter create --platforms=android --org com.yumeanime .
+          flutter pub get
+
+      - name: بناء APK
+        working-directory: app
+        run: flutter build apk --release
+
+      - name: حفظ APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: YUME-ANIME-APK
+          path: app/build/app/outputs/flutter-apk/app-release.apk
